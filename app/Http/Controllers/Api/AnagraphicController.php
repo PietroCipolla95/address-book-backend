@@ -8,13 +8,14 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Log;
 
 class AnagraphicController extends Controller
 {
     public function index()
     {
         // fetch all anagraphics with contacts
-        $anagraphics = Anagraphic::all();
+        $anagraphics = Anagraphic::get();
         return response()->json([
             'success' => true,
             'result' => $anagraphics
@@ -99,6 +100,9 @@ class AnagraphicController extends Controller
 
     public function destroy(Anagraphic $anagraphic)
     {
+
+        $anagraphic->update(['deleted' => !$anagraphic->deleted]);
+
         $anagraphic->delete();
 
         return response()->json([
@@ -107,11 +111,11 @@ class AnagraphicController extends Controller
         ]);
     }
 
-    public function search($string)
+    public function search(Request $request)
     {
-        $anagraphics = Anagraphic::with('contact')
-            ->where('name', 'LIKE', '%' . $string . '%')
-            ->get();
+        $keyword = $request->input('keyword');
+
+        $anagraphics = Anagraphic::where('name', 'LIKE', $keyword . '%')->get();
 
         return response()->json([
             'success' => true,
@@ -120,35 +124,33 @@ class AnagraphicController extends Controller
     }
 
 
-    public function getContacts($id)
+    public function getContacts(Anagraphic $anagraphic)
     {
-        $anagraphic = Anagraphic::with('contact')->find($id);
-
-        if (!$anagraphic) {
-            return response()->json([
-                'success' => false,
-                'result' => 'Anagraphic not found',
-            ]);
-        }
+        $contacts = $anagraphic->contacts;
 
         return response()->json([
             'success' => true,
-            'result' => $anagraphic->contact,
+            'contacts' => $contacts,
         ]);
     }
 
-    public function addContact(Request $request, $id)
+    public function addContact(Request $request, Anagraphic $anagraphic)
     {
-        // find the anagraphic by ID
-        $anagraphic = Anagraphic::findOrFail($id);
 
-        // attach contacts
-        $anagraphic->contact()->attach($request->input('contacts'));
+        $validatedData = $request->validate([
+            'contact' => 'required|string|max:255',
+            'type' => 'required',
+            'notes' => 'nullable|string|max:255',
+        ]);
+
+        $validatedData['type'] = $request->type;
+
+        $contact = $anagraphic->contacts()->create($validatedData);
 
         return response()->json([
             'success' => true,
-            'result' => $anagraphic->contact,
-            'message' => 'Contacts added successfully',
+            'contact' => $contact,
+            'message' => 'Contact added successfully',
         ]);
     }
 }

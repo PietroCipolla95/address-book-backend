@@ -60,7 +60,7 @@ Route::patch('/anagraphic/{anagraphic:id}', [AnagraphicController::class, 'updat
 Route::delete('/anagraphic/{anagraphic:id}', [AnagraphicController::class, 'destroy']);
 
 // search anagraphic
-Route::get('/anagraphic/{string}', [AnagraphicController::class, 'search']);
+Route::get('/anagraphics/search', [AnagraphicController::class, 'search']);
 
 // fetch all the contacts for a single anagraphic
 Route::get('/anagraphic/{anagraphic:id}/contacts', [AnagraphicController::class, 'getContacts']);
@@ -68,17 +68,16 @@ Route::get('/anagraphic/{anagraphic:id}/contacts', [AnagraphicController::class,
 // add a contact to the single anagraphic
 Route::post('/anagraphic/{anagraphic:id}/contact', [AnagraphicController::class, 'addContact']);
 
-
 // Contact routes
 
 // show a single contact
-Route::get('/contact/{contact:id}', [ContactController::class, 'show']);
+Route::get('/contacts/{contact:id}', [ContactController::class, 'show']);
 
 // update the contact
-Route::put('/contact/{contact:id}', [ContactController::class, 'update']);
+Route::patch('/contact/{contact:id}', [ContactController::class, 'update']);
 
 // delete the contact
 Route::delete('/contact/{contact:id}', [ContactController::class, 'destroy']);
 
 // search contact
-Route::get('/contact/{string}', [ContactController::class, 'search']);
+Route::get('/contacts/search/{contact:type}', [ContactController::class, 'searchByType']);

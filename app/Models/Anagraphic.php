@@ -16,7 +16,7 @@ class Anagraphic extends Model
 
     public function contacts(): HasMany
     {
-        return $this->hasMany(Contact::class);
+        return $this->hasMany(Contact::class)->where('deleted', 0);
     }
 
     protected $dates = ['deleted_at'];

@@ -20,6 +20,7 @@ return new class extends Migration
             $table->string('notes')->nullable();
             $table->boolean('deleted')->default(0);
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 
