@@ -6,10 +6,11 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use App\Models\Contact;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Anagraphic extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
     protected $fillable = ['name', 'notes', 'photo', 'deleted'];
 
@@ -17,4 +18,6 @@ class Anagraphic extends Model
     {
         return $this->hasMany(Contact::class);
     }
+
+    protected $dates = ['deleted_at'];
 }

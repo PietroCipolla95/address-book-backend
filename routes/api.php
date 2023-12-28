@@ -38,6 +38,9 @@ Route::patch('/user/{user:id}', [UserController::class, 'update']);
 // delete a single user
 Route::delete('/user/{user:id}', [UserController::class, 'destroy']);
 
+// login user
+Route::post('/user/login', [UserController::class, 'loginUser']);
+
 
 // Anagraphic routes
 
@@ -51,7 +54,7 @@ Route::get('/anagraphic/{anagraphic:id}', [AnagraphicController::class, 'show'])
 Route::post('/anagraphic', [AnagraphicController::class, 'store']);
 
 // update a single anagraphic
-Route::put('/anagraphic/{anagraphic:id}', [AnagraphicController::class, 'update']);
+Route::patch('/anagraphic/{anagraphic:id}', [AnagraphicController::class, 'update']);
 
 // delete a single anagraphic
 Route::delete('/anagraphic/{anagraphic:id}', [AnagraphicController::class, 'destroy']);
@@ -60,10 +63,10 @@ Route::delete('/anagraphic/{anagraphic:id}', [AnagraphicController::class, 'dest
 Route::get('/anagraphic/{string}', [AnagraphicController::class, 'search']);
 
 // fetch all the contacts for a single anagraphic
-Route::get('/anagraphic/{anagraphic:id}/contacts', [AnagraphicController::class, 'getContatti']);
+Route::get('/anagraphic/{anagraphic:id}/contacts', [AnagraphicController::class, 'getContacts']);
 
 // add a contact to the single anagraphic
-Route::post('/anagraphic/{anagraphic:id}/contact', [AnagraphicController::class, 'addContatto']);
+Route::post('/anagraphic/{anagraphic:id}/contact', [AnagraphicController::class, 'addContact']);
 
 
 // Contact routes
