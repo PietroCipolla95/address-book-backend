@@ -19,6 +19,7 @@ return new class extends Migration
             $table->boolean('deleted')->default(0);
             $table->rememberToken();
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 
