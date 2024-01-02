@@ -14,7 +14,7 @@ class UserController extends Controller
     {
 
         /*  fetch all users */
-        $users = User::all();
+        $users = User::all()->where('deleted', 0);
 
         return response()->json([
             'success' => true,

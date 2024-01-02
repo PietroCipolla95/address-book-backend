@@ -42,17 +42,16 @@ class AnagraphicController extends Controller
         ]);
 
         // process and store the image
-        if ($request->has('photo')) {
-
-            // save image with path
-            $path = Storage::put('thumbnails', $request->photo);
-            $validatedData['photo'] = $path;
+        if ($request->hasFile('photo')) {
+            $file = $request->file('photo');
+            $binaryImage = file_get_contents($file->path());
+            $validatedData['photo'] = $binaryImage;
         } else {
-            // if no image is provided, use the default thumbnail
-            $validatedData['photo'] = 'thumbnails/contact.png';
+            // use a default image:
+            $validatedData['photo'] = file_get_contents(Storage::path('thumbnails/contact.png'));
         }
 
-        // Save the Anagraphic with the image path
+        // Save the Anagraphic with the image data
         $anagraphic = Anagraphic::create($validatedData);
 
         return response()->json([
@@ -60,7 +59,6 @@ class AnagraphicController extends Controller
             'result' => $anagraphic,
         ]);
     }
-
     public function update(Request $request, Anagraphic $anagraphic)
     {
         // validation
@@ -138,8 +136,23 @@ class AnagraphicController extends Controller
     {
 
         $validatedData = $request->validate([
-            'contact' => 'required|string|max:255',
             'type' => 'required',
+            'contact' => [
+                'required',
+                function ($attribute, $value, $fail) use ($request) {
+                    if ($request->input('type') !== 'email') {
+                        // Se il tipo è diverso da email, verifica il formato E.164
+                        if (!preg_match('^\+?\d{6,7}[2-9]\d{3}$^', $value)) {
+                            $fail('phone number formatting not valid');
+                        }
+                    } elseif ($request->input('type') === 'email') {
+                        // Se il tipo è email, verifica che sia un indirizzo email valido
+                        if (!filter_var($value, FILTER_VALIDATE_EMAIL)) {
+                            $fail('email not valid');
+                        }
+                    }
+                },
+            ],
             'notes' => 'nullable|string|max:255',
         ]);
 

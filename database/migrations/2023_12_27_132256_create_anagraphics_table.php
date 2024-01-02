@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->string('name')->nullable();
             $table->string('notes')->nullable();
-            $table->text('photo')->nullable();
+            $table->binary('photo')->nullable();
             $table->boolean('deleted')->default(0);
             $table->timestamps();
             $table->softDeletes();
