@@ -69,7 +69,7 @@ class UserController extends Controller
         $request->validate([
             'name' => 'nullable|max:255',
             'type' => 'required',
-            'password' => 'required'
+            'password' => 'nullable'
         ]);
 
         // update user
@@ -90,7 +90,7 @@ class UserController extends Controller
 
         return response()->json([
             'success' => true,
-            'messge' => 'User deleted successfully!'
+            'message' => 'User deleted successfully!'
         ]);
     }
 
