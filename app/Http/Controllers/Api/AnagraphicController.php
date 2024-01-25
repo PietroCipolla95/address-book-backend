@@ -5,10 +5,9 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Anagraphic;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Facades\File;
-use Illuminate\Support\Facades\Log;
+use Intervention\Image\ImageManager;
+use Intervention\Image\Drivers\Gd\Driver;
 
 class AnagraphicController extends Controller
 {
@@ -35,30 +34,37 @@ class AnagraphicController extends Controller
     public function store(Request $request)
     {
         // validation
-        $validatedData = $request->validate([
+        $request->validate([
             'name' => 'required|string|max:255',
-            'photo' => 'nullable|image|mimes:png,jpg|max:32768',
-            'note' => 'nullable|string|max:255',
+            'photo' => 'nullable|image|mimes:png,jpg',
+            'notes' => 'nullable|string|max:255',
         ]);
 
-        // process and store the image
+        $anagraphic = new Anagraphic();
+        $anagraphic->name = $request->name;
+        $anagraphic->notes = $request->notes;
+
         if ($request->hasFile('photo')) {
-            $file = $request->file('photo');
-            $binaryImage = file_get_contents($file->path());
-            $validatedData['photo'] = $binaryImage;
+            //if file is provided
+            $photo = base64_encode(file_get_contents($request->file('photo')->path()));
+            $anagraphic->photo = $photo;
+            $anagraphic->save();
         } else {
-            // use a default image:
-            $validatedData['photo'] = file_get_contents(Storage::path('thumbnails/contact.png'));
+            // if no file is provided
+            $defaultImagePath = public_path('/storage/thumbnails/contact.png');
+            $photo = base64_encode(file_get_contents($defaultImagePath));
+            $anagraphic->photo = $photo;
+            $anagraphic->save();
         }
 
-        // Save the Anagraphic with the image data
-        $anagraphic = Anagraphic::create($validatedData);
+        $anagraphic->save();
 
         return response()->json([
             'success' => true,
-            'result' => $anagraphic,
+            'message' => 'Anagraphic added',
         ]);
     }
+
     public function update(Request $request, Anagraphic $anagraphic)
     {
         // validation
