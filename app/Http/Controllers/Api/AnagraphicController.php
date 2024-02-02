@@ -6,8 +6,6 @@ use App\Http\Controllers\Controller;
 use App\Models\Anagraphic;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
-use Intervention\Image\ImageManager;
-use Intervention\Image\Drivers\Gd\Driver;
 
 class AnagraphicController extends Controller
 {
@@ -23,7 +21,6 @@ class AnagraphicController extends Controller
 
     public function show(Anagraphic $anagraphic)
     {
-
         // show an anagraphic with corresponding contacts
         return response()->json([
             'success' => true,
@@ -46,14 +43,65 @@ class AnagraphicController extends Controller
 
         if ($request->hasFile('photo')) {
             //if file is provided
-            $photo = base64_encode(file_get_contents($request->file('photo')->path()));
-            $anagraphic->photo = $photo;
+
+            $image = $request->photo;
+
+            // Resize the image to 256x256
+            list($width, $height, $type) = getimagesize($image);
+            $newWidth = 256;
+            $newHeight = 256;
+            $resizedImage = imagecreatetruecolor($newWidth, $newHeight);
+
+            switch ($type) {
+                case IMAGETYPE_JPEG:
+                    $sourceImage = imagecreatefromjpeg($image);
+                    break;
+                case IMAGETYPE_PNG:
+                    $sourceImage = imagecreatefrompng($image);
+                    imagealphablending($resizedImage, false);
+                    imagesavealpha($resizedImage, true);
+                    break;
+            }
+
+            // Resize and save as PNG
+            imagecopyresized($resizedImage, $sourceImage, 0, 0, 0, 0, $newWidth, $newHeight, $width, $height);
+
+            ob_start();
+            imagepng($resizedImage);
+
+            $resizedImageBase64 = base64_encode(ob_get_clean());
+
+            $anagraphic->photo = $resizedImageBase64;
+
+            imagedestroy($sourceImage);
+            imagedestroy($resizedImage);
+
             $anagraphic->save();
         } else {
             // if no file is provided
-            $defaultImagePath = public_path('/storage/thumbnails/contact.png');
-            $photo = base64_encode(file_get_contents($defaultImagePath));
-            $anagraphic->photo = $photo;
+            $defaultImage = public_path('/storage/thumbnails/contact.png');
+
+            list($width, $height, $type) = getimagesize($defaultImage);
+            $newWidth = 256;
+            $newHeight = 256;
+            $resizedImage = imagecreatetruecolor($newWidth, $newHeight);
+
+            switch ($type) {
+                case IMAGETYPE_PNG:
+                    $sourceImage = imagecreatefrompng($defaultImage);
+                    imagealphablending($resizedImage, false);
+                    imagesavealpha($resizedImage, true);
+                    break;
+            }
+
+            imagecopyresized($resizedImage, $sourceImage, 0, 0, 0, 0, $newWidth, $newHeight, $width, $height);
+
+            ob_start();
+            imagepng($resizedImage);
+
+            $resizedImageBase64 = base64_encode(ob_get_clean());
+
+            $anagraphic->photo = $resizedImageBase64;
             $anagraphic->save();
         }
 
