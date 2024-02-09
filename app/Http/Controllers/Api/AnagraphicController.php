@@ -5,14 +5,13 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Anagraphic;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
 
 class AnagraphicController extends Controller
 {
     public function index()
     {
         // fetch all anagraphics with contacts
-        $anagraphics = Anagraphic::get();
+        $anagraphics = Anagraphic::all()->where('deleted', 0);
         return response()->json([
             'success' => true,
             'result' => $anagraphics
@@ -116,14 +115,13 @@ class AnagraphicController extends Controller
     public function update(Request $request, Anagraphic $anagraphic)
     {
         // validation
-        $validatedData = $request->validate([
+        //error_log(print_r($request, true));
+
+        $request->validate([
             'name' => 'required|string|max:255',
-            'photo' => 'nullable|image|mimes:png,jpg|max:32768',
+            'photo' => 'nullable|image|mimes:png,jpg',
             'notes' => 'nullable|string|max:255',
         ]);
-
-        // update anagraphic
-        $anagraphic->update($validatedData);
 
         // sync contacts if provided
         if ($request->has('contacts')) {
@@ -131,17 +129,47 @@ class AnagraphicController extends Controller
         }
 
         // check if request has photo
-        if ($request->has('photo')) {
+        if ($request->hasFile('photo')) {
+            //if file is provided
 
-            // store the new photo
-            $path = Storage::put('thumbnails', $request->photo);
-            $validatedData['photo'] = $path;
+            $image = $request->photo;
 
-            // if there's an existing photo delete it
-            if (!is_Null($anagraphic->photo) && Storage::fileExists($anagraphic->photo)) {
-                Storage::delete($anagraphic->photo);
+            // Resize the image to 256x256
+            list($width, $height, $type) = getimagesize($image);
+            $newWidth = 256;
+            $newHeight = 256;
+            $resizedImage = imagecreatetruecolor($newWidth, $newHeight);
+
+            switch ($type) {
+                case IMAGETYPE_JPEG:
+                    $sourceImage = imagecreatefromjpeg($image);
+                    break;
+                case IMAGETYPE_PNG:
+                    $sourceImage = imagecreatefrompng($image);
+                    imagealphablending($resizedImage, false);
+                    imagesavealpha($resizedImage, true);
+                    break;
             }
+
+            // Resize and save as PNG
+            imagecopyresized($resizedImage, $sourceImage, 0, 0, 0, 0, $newWidth, $newHeight, $width, $height);
+
+            ob_start();
+            imagepng($resizedImage);
+
+            $resizedImageBase64 = base64_encode(ob_get_clean());
+
+            $anagraphic->photo = $resizedImageBase64;
+
+            imagedestroy($sourceImage);
+            imagedestroy($resizedImage);
+
+            $anagraphic->save();
         }
+
+        // update anagraphic
+        $anagraphic->update($request->all());
+
 
         return response()->json([
             'success' => true,
