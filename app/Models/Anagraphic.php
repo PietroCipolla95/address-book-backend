@@ -14,6 +14,13 @@ class Anagraphic extends Model
 
     protected $fillable = ['name', 'notes', 'photo', 'deleted'];
 
+    protected $hidden = [
+        'created_at',
+        'deleted_at',
+        'updated_at',
+        'deleted',
+    ];
+
     public function contacts(): HasMany
     {
         return $this->hasMany(Contact::class)->where('deleted', 0);

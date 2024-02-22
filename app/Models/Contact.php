@@ -13,6 +13,13 @@ class Contact extends Model
 
     protected $fillable = ['contact', 'type', 'notes', 'deleted'];
 
+    protected $hidden = [
+        'created_at',
+        'deleted_at',
+        'updated_at',
+        'deleted',
+    ];
+
     public function anagraphic(): BelongsTo
     {
         return $this->belongsTo(Anagraphic::class);
